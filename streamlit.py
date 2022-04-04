@@ -10,78 +10,118 @@ st.set_page_config(layout="centered", page_icon="💬", page_title="Solar energy
 
 
 st.title('Solar Power Generation Analysis Using Historical Weather Data')
-
-
-
-st.markdown('Objective : Comparison of monthly wise solar power generation with respect to weather indices from nearest observatory(AWS)')
-st.markdown('Location of solar power plant : Nargund(North Interior Karnataka)')
-st.markdown('Location of the observatory used for historical weather data analysis : Gadag IMD Observatory(North Interior Karnataka)')
-st.markdown('ERA5-Land monthly averaged data at the location of solar power plant(30 km horizontal resolution reanalysis data)')
-st.markdown('Period : 2018 April to 2021 June(3 years 3 months)')
-st.markdown('Comparison mode : Monthly-wise')
-
+st.markdown('''
+* Objective : Comparison of monthly wise solar power generation with respect to weather indices from nearest observatory(AWS)
+* Location of solar power plant : Nargund(North Interior Karnataka)
+* Location of the observatory used for historical weather data analysis : Gadag IMD Observatory(North Interior Karnataka)
+* ERA5-Land monthly averaged data at the location of solar power plant(30 km horizontal resolution reanalysis data)
+* Period : 2018 April to 2021 June(3 years 3 months
+* Comparison mode : Monthly-wise
+* Two solar power plants are used for analysis: Anantpur Solar Park Private Limited (ASPPL), Thungapatra Solar Power Private Limited (TSPPL)
+''')
 
 st.write('---')
 
 
 st.subheader('Monthly averaged weather variables to compare with Monthly Solar Power generation(in MWh)')
 
-st.text('Surface Solar Radiation')
-st.text('Maximum Temperature')
-st.text('Mean Temperature')
-st.text('Total cloud cover')
-st.text('Rain days')
-st.text('Relative Humidity')
-st.text('Dew Point Temperature')
-st.text('Precipitation')
-st.text('Percentage soil water')
-st.text('Evaporation')
-st.text('Skin Temperature')
-st.text('Vegetation')
-st.text('Soil Temperature')
+st.markdown('''
+* Surface Solar Radiation
+* Maximum Temperature
+* Mean Temperature
+* Total cloud cover
+* Rain days
+* Relative Humidity
+* Dew Point Temperature
+* Precipitation
+* Percentage soil water
+* Evaporation
+* Skin Temperature
+* Vegetation
+* Soil Temperature
+''')
 
 st.write('---')
 
 
 
-# Surface Solar Radiation
-# Maximum Temperature
-# Mean Temperature
-# Total cloud cover
-# Rain days
-# Relative Humidity
-# Dew Point Temperature
-# Precipitation
-# Percentage soil water
-# Evaporation
-# Skin Temperature
-# Vegetation
-# Soil Temperature
+st.subheader('Solar power plant capacity frequency')
 
+
+
+
+solar_plants_file = 'cordiantes_power_chrono.csv'
+
+
+
+@st.cache
+def load_data():
+    solar = pd.read_csv(solar_plants_file)
+    lowercase = lambda x: str(x).lower()
+    solar.rename(lowercase, axis='columns', inplace=True)
+    #data1[DATE_COLUMN] = pd.to_datetime(data[DATE_COLUMN])
+    return solar
+
+
+solar_plants = load_data()
+
+
+fig, ax = plt.subplots()
+ax.hist(solar_plants['power'], bins=35)
+
+st.pyplot(fig)
 
 
 
 st.subheader('Locations of solar power plant')
 
 
-data = {'location':['ASPPL', 'TSPPL'],
-        'lat':[15.79030756911847, 16.45777847538088],
-        'lon':[75.49064818162839, 74.78141029948743],}
-
-df = pd.DataFrame(data)
-
-st.map(df)
+plant_capacity_slider = st.slider('Solar Poer Plant Capacity', solar_plants['power'].min(), solar_plants['power'].max(), solar_plants['power'].max())
+filtered_data = solar_plants[solar_plants['power'] <= plant_capacity_slider]
+st.subheader(f'Location of solar power plant whose capacity is less than or equal to {plant_capacity_slider}')
+st.map(filtered_data)
 
 
 
-# df = pd.DataFrame(
-     # np.random.randn(1000, 2) / [50, 50] + [37.76, -122.4],
-     # columns=['lat', 'lon'])
+st.write('---') #cordiantes
+
+
+# data = {'location':['ASPPL', 'TSPPL'],
+        # 'lat':[15.79030756911847, 16.45777847538088],
+        # 'lon':[75.49064818162839, 74.78141029948743],}
+
+# df = pd.DataFrame(data)
 
 # st.map(df)
 
+
 st.write('---')
 
+aws_stations = 'WMO_SOLAR_Cordinates.csv'
+
+@st.cache
+def weather_stations():
+    aws = pd.read_csv(aws_stations)
+    lowercase = lambda x: str(x).lower()
+    aws.rename(lowercase, axis='columns', inplace=True)
+    #data1[DATE_COLUMN] = pd.to_datetime(data[DATE_COLUMN])
+    return aws
+
+
+aws_st_data = weather_stations()
+
+
+
+st.subheader('Location of weather stations which will be used for analysis')
+st.map(aws_st_data)
+
+
+
+
+
+
+
+st.write('---')
 
 
 option1 = st.selectbox(
@@ -102,17 +142,6 @@ tsppl_data = 'Full_Analysis.csv'
 
 asppl = pd.read_csv(asppl_data)
 #tsppl = pd.read_csv(tsppl_data)
-
-
-#space(1)
-
-#source = source[source.symbol.isin(symbols)]
-#chart = chart.get_chart(apssl)
-#st.altair_chart(chart, use_container_width=True)
-
-
-#inp = apssl.columns
-
 
 
 
@@ -192,6 +221,8 @@ def scatter_plot():
     z = np.polyfit(asppl['Generation'], asppl[option], 1)
     p = np.poly1d(z)
     plt.plot(asppl['Generation'],p(asppl['Generation']),"r--")
+    plt.xlabel('Solar power generated (MWH)')
+    plt.ylabel('Weather variable')
     
     st.pyplot(fig)
     
