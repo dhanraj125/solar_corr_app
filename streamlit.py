@@ -76,7 +76,7 @@ st.pyplot(fig)
 st.subheader('Locations of solar power plant')
 
 
-plant_capacity_slider = st.slider('Solar Poer Plant Capacity', solar_plants['power'].min(), solar_plants['power'].max(), solar_plants['power'].max())
+plant_capacity_slider = st.slider('Solar Poer Plant Capacity', int(solar_plants['power'].min()), int(solar_plants['power'].max()), int(solar_plants['power'].max()))
 filtered_data = solar_plants[solar_plants['power'] <= plant_capacity_slider]
 st.subheader(f'Location of solar power plant whose capacity is less than or equal to {plant_capacity_slider}')
 st.map(filtered_data)
